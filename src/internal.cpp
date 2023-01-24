@@ -174,7 +174,7 @@ void DrawPinIcon(const Pin& pin, bool connected, int alpha)
             return;
     }
 
-    ax::Widgets::Icon(ImVec2(s_Session->s_PinIconSize, s_Session->s_PinIconSize), iconType, connected, color, ImColor(32, 32, 32, alpha));
+    ax::Widgets::Icon(ImVec2((float)s_Session->s_PinIconSize, (float)s_Session->s_PinIconSize), iconType, connected, color, ImColor(32, 32, 32, alpha));
 };
 
 bool static_config_save_settings(const char* data, size_t size, ax::NodeEditor::SaveReasonFlags reason, void* userPointer)

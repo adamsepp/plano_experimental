@@ -23,9 +23,114 @@ using ax::Widgets::IconType;
 namespace plano {
 namespace api {
 
+static bool Splitter(bool split_vertically, float thickness, float* size1, float* size2, float min_size1, float min_size2, float splitter_long_axis_size = -1.0f)
+{
+	using namespace ImGui;
+	ImGuiContext& g = *GImGui;
+	ImGuiWindow* window = g.CurrentWindow;
+	ImGuiID id = window->GetID("##Splitter");
+	ImRect bb;
+	bb.Min = window->DC.CursorPos + (split_vertically ? ImVec2(*size1, 0.0f) : ImVec2(0.0f, *size1));
+	bb.Max = bb.Min + CalcItemSize(split_vertically ? ImVec2(thickness, splitter_long_axis_size) : ImVec2(splitter_long_axis_size, thickness), 0.0f, 0.0f);
+	return SplitterBehavior(bb, id, split_vertically ? ImGuiAxis_X : ImGuiAxis_Y, size1, size2, min_size1, min_size2, 0.0f);
+}
+void ShowLeftPane(float paneWidth)
+{
+	auto& io = ImGui::GetIO();
+
+	ImGui::BeginChild("Selection", ImVec2(paneWidth, 0));
+
+	paneWidth = ImGui::GetContentRegionAvail().x;
+	
+	if (ImGui::Button("Zoom to Content"))
+		ed::NavigateToContent();
+	
+	ImGui::SameLine();
+	if (ImGui::Button("Show Flow"))
+	{
+		for (auto& link : s_Session->s_Links)
+			ed::Flow(link.ID);
+	}
+
+	std::vector<ed::NodeId> selectedNodes;
+	std::vector<ed::LinkId> selectedLinks;
+	selectedNodes.resize(ed::GetSelectedObjectCount());
+	selectedLinks.resize(ed::GetSelectedObjectCount());
+
+	int nodeCount = ed::GetSelectedNodes(selectedNodes.data(), static_cast<int>(selectedNodes.size()));
+	int linkCount = ed::GetSelectedLinks(selectedLinks.data(), static_cast<int>(selectedLinks.size()));
+
+	selectedNodes.resize(nodeCount);
+	selectedLinks.resize(linkCount);
+
+	ImGui::GetWindowDrawList()->AddRectFilled(
+		ImGui::GetCursorScreenPos(),
+		ImGui::GetCursorScreenPos() + ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+		ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]), ImGui::GetTextLineHeight() * 0.25f);
+	ImGui::Spacing(); ImGui::SameLine();
+	ImGui::TextUnformatted("Nodes");
+	ImGui::Indent();
+	for (auto& node : s_Session->s_Nodes)
+	{
+		ImGui::PushID(node.ID.AsPointer());
+		auto start = ImGui::GetCursorScreenPos();
+
+		bool isSelected = std::find(selectedNodes.begin(), selectedNodes.end(), node.ID) != selectedNodes.end();
+		if (ImGui::Selectable((node.Name + "##" + std::to_string(reinterpret_cast<uintptr_t>(node.ID.AsPointer()))).c_str(), &isSelected))
+		{
+			if (io.KeyCtrl)
+			{
+				if (isSelected)
+					ed::SelectNode(node.ID, true);
+				else
+					ed::DeselectNode(node.ID);
+			}
+			else
+				ed::SelectNode(node.ID, false);
+
+			ed::NavigateToSelection();
+		}
+		if (ImGui::IsItemHovered() && !node.State.empty())
+			ImGui::SetTooltip("State: %s", node.State.c_str());
+
+		ImGui::PopID();
+	}
+	ImGui::Unindent();
+
+	static int changeCount = 0;
+
+	ImGui::GetWindowDrawList()->AddRectFilled(
+		ImGui::GetCursorScreenPos(),
+		ImGui::GetCursorScreenPos() + ImVec2(paneWidth, ImGui::GetTextLineHeight()),
+		ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderActive]), ImGui::GetTextLineHeight() * 0.25f);
+	ImGui::Spacing(); ImGui::SameLine();
+	ImGui::TextUnformatted("Selection");
+
+	ImGui::BeginHorizontal("Selection Stats", ImVec2(paneWidth, 0));
+	ImGui::Text("Changed %d time%s", changeCount, changeCount > 1 ? "s" : "");
+	ImGui::Spring();
+	if (ImGui::Button("Deselect All"))
+		ed::ClearSelection();
+	ImGui::EndHorizontal();
+	ImGui::Indent();
+	for (int i = 0; i < nodeCount; ++i) ImGui::Text("Node (%p)", selectedNodes[i].AsPointer());
+	for (int i = 0; i < linkCount; ++i) ImGui::Text("Link (%p)", selectedLinks[i].AsPointer());
+	ImGui::Unindent();
+
+	if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_Z)))
+		for (auto& link : s_Session->s_Links)
+			ed::Flow(link.ID);
+
+	if (ed::HasSelectionChanged())
+		++changeCount;
+
+	ImGui::EndChild();
+}
 
 void Frame(void)
 {
+	std::lock_guard<std::mutex> lock(*s_Session->contextMtx); // lock context...
+
     auto& io = ImGui::GetIO();
 
     //ImGui::Text("FPS: %.2f (%.2gms)", io.Framerate, io.Framerate ? 1000.0f / io.Framerate : 0.0f);
@@ -46,13 +151,13 @@ void Frame(void)
 
 
 
-    //static float leftPaneWidth  = 400.0f;
-    //static float rightPaneWidth = 800.0f;
-    //Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
+    static float leftPaneWidth  = 400.0f;
+    static float rightPaneWidth = 800.0f;
+    Splitter(true, 4.0f, &leftPaneWidth, &rightPaneWidth, 50.0f, 50.0f);
 
-    //ShowLeftPane(leftPaneWidth - 4.0f);
+    ShowLeftPane(leftPaneWidth - 4.0f);
 
-    //ImGui::SameLine(0.0f, 12.0f);
+    ImGui::SameLine(0.0f, 12.0f);
 
     // This little beauty lets me split up this horrifyingly huge file.
     static statepack s;

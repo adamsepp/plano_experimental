@@ -127,7 +127,7 @@ void draw_blueprint_style(Pin* newLinkPin)
             } else {
                 builder.Middle();
                 if(s_Session->NodeRegistry.count(node.Name) > 0){
-                    s_Session->NodeRegistry[node.Name].DrawAndEditProperties(node.Properties);
+                    s_Session->NodeRegistry[node.Name].DrawAndEditProperties(node.function);
                 }else{
                     im_draw_basic_widgets(node.Properties);
                 }

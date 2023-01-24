@@ -51,6 +51,7 @@ types::ContextData* CreateContext(const types::ContextCallbacks& Config, const c
 
 void DestroyContext(ContextData* context)
 {
+	std::lock_guard<std::mutex> lock(*context->contextMtx); // lock context...
     delete context;
     context = nullptr;
 }
@@ -76,6 +77,7 @@ void LoadNodesAndLinksFromBuffer(const size_t in_size, const char* buffer)
     if(in_size < 1)
         return;
 
+	std::lock_guard<std::mutex> lock(*s_Session->contextMtx); // lock context...
 
     // Extremely bad deserialization system
     // PHASE ONE - READ FILE TO MEMORY --------------------------------------------
@@ -220,9 +222,9 @@ char* SaveNodesAndLinksToBuffer(size_t* size)
         out << s_Session->s_Nodes[i].Name << std::endl;
 
         // the "count of pins" is next
-        int output_pin_count = s_Session->s_Nodes[i].Outputs.size();
-        int input_pin_count = s_Session->s_Nodes[i].Inputs.size();
-        int pin_count = output_pin_count + input_pin_count;
+		size_t output_pin_count = s_Session->s_Nodes[i].Outputs.size();
+        size_t input_pin_count = s_Session->s_Nodes[i].Inputs.size();
+        size_t pin_count = output_pin_count + input_pin_count;
         out << pin_count << std::endl;
 
         // dump the input pin ids

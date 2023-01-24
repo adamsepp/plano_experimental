@@ -26,7 +26,7 @@ Node* NewRegistryNode(const std::string& NodeName) {
     for(PinDescription p : Desc.Outputs)
         s_Session->s_Nodes.back().Outputs.emplace_back(GetNextId(), p.Label.c_str(), p.DataType);
 
-    Desc.InitializeDefaultProperties(s_Session->s_Nodes.back().Properties);
+    Desc.InitializeDefaultProperties(&s_Session->s_Nodes.back().function);
 
     // Standard scrubber from examples.
     BuildNode(&s_Session->s_Nodes.back());
@@ -57,6 +57,9 @@ plano::types::Node* RestoreRegistryNode(const std::string& NodeName, int id, con
         s_Session->s_Nodes.back().Inputs.emplace_back(pin_ids[pin_id_idx++], p.Label.c_str(), p.DataType);
     for(PinDescription p : Desc.Outputs)
         s_Session->s_Nodes.back().Outputs.emplace_back(pin_ids[pin_id_idx++], p.Label.c_str(), p.DataType);
+	
+	// For now create new object... TODO: later create deserialized object here from restore data
+	Desc.InitializeDefaultProperties(&s_Session->s_Nodes.back().function);
 
     // Standard scrubber from examples.
     BuildNode(&s_Session->s_Nodes.back());

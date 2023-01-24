@@ -5,6 +5,7 @@
 */
 # include <plano_properties.h>
 # include <plano_types.h>
+#include <mutex>
 
 namespace plano {
 namespace types {
@@ -51,8 +52,8 @@ namespace api {
         
         // NodeDescrption Function Pointers
         // You must implement these per node to define widget behavior and values.  See Nodos project for examples.
-        void (*InitializeDefaultProperties)(Properties&); // Set default values for node widget values. Called when constructing a fresh node at runtime (not deserialization).        
-        void (*DrawAndEditProperties)(Properties&);       // Called when it is time to draw the node's widgets.  Restore, edit and save the widget values in the properties table.
+        void (*InitializeDefaultProperties)(std::shared_ptr<FuncBase>* function); // Set default values for node widget values. Called when constructing a fresh node at runtime (not deserialization).        
+        void (*DrawAndEditProperties)(std::shared_ptr<FuncBase> function);       // Called when it is time to draw the node's widgets.  Restore, edit and save the widget values in the properties table.
     };
 
     // Pin Description Struct

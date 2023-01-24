@@ -10,6 +10,8 @@
 
 #include <plano_properties.h>
 
+#include "FuncBase.h"
+
 namespace plano {
 namespace types {
 
@@ -65,6 +67,8 @@ struct Node
     ImColor Color;
     NodeType Type;
     ImVec2 Size;
+
+	std::shared_ptr<FuncBase> function = nullptr;
 
     std::string State;      // State is buffer to store the backend's node specific data between frames, basically.  It mostly stores the node's position.
     std::string SavedState; // SavedState is only used in the leftpanel, so we can delete it if you want.

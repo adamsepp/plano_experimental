@@ -180,9 +180,9 @@ void handle_delete_interactions()
                     auto node = *id;
                     std::vector<unsigned int> pin_ids;
                     for(auto inp: node.Inputs)
-                        pin_ids.push_back(inp.ID.Get());
+                        pin_ids.push_back((unsigned int)inp.ID.Get());
                     for(auto outp: node.Outputs)
-                        pin_ids.push_back(outp.ID.Get());
+                        pin_ids.push_back((unsigned int)outp.ID.Get());
 
                     // Now that we know what pin IDs the node had, we can actually destroy it now.
                     s_Session->s_Nodes.erase(id);

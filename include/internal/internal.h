@@ -1,6 +1,7 @@
 #ifndef PLANO_INTERNAL_H
 #define PLANO_INTERNAL_H
 #include <plano_api.h>
+#include <mutex>
 
 
 namespace plano {
@@ -19,6 +20,8 @@ bool static_config_save_node_settings(ax::NodeEditor::NodeId nodeId, const char*
 // still in plano namesapce
 namespace types {
 struct ContextData {
+	std::mutex* contextMtx;
+
                                                  // note: nodes carry the pins
     std::vector<types::Node>       s_Nodes;      // s_Nodes is the list of instantiated nodes in the running session
     std::vector<types::Link>       s_Links;      // s_Links is the list of instantiated links in the running session
