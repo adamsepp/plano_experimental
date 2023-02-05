@@ -52,8 +52,9 @@ namespace api {
         
         // NodeDescrption Function Pointers
         // You must implement these per node to define widget behavior and values.  See Nodos project for examples.
-        void (*InitializeDefaultProperties)(std::shared_ptr<FuncBase>* function); // Set default values for node widget values. Called when constructing a fresh node at runtime (not deserialization).        
-        void (*DrawAndEditProperties)(std::shared_ptr<FuncBase> function);       // Called when it is time to draw the node's widgets.  Restore, edit and save the widget values in the properties table.
+        void (*InitializeDefaultProperties)(std::shared_ptr<FuncBase>* function);              // Set default values for node widget values. Called when constructing a fresh node at runtime (not deserialization).        
+        void (*DrawAndEditProperties)(std::shared_ptr<FuncBase> function, ImColor* nodeColor); // Called when it is time to draw the node's widgets.  Restore, edit and save the widget values in the properties table.
+		void(*DrawSideEditProperties)(std::shared_ptr<FuncBase> function);                     // Called to draw settings context in side panel for additional settings...
     };
 
     // Pin Description Struct

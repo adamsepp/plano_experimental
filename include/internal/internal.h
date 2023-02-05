@@ -20,7 +20,6 @@ bool static_config_save_node_settings(ax::NodeEditor::NodeId nodeId, const char*
 // still in plano namesapce
 namespace types {
 struct ContextData {
-	std::mutex* contextMtx;
 
                                                  // note: nodes carry the pins
     std::vector<types::Node>       s_Nodes;      // s_Nodes is the list of instantiated nodes in the running session
@@ -82,6 +81,32 @@ struct ContextData {
         ax::NodeEditor::DestroyEditor(m_Editor);
         DestroyTexture(s_HeaderBackground);
     };
+
+	// update function links
+	void UpdateFunctionLinks()
+	{
+		// clear all node links
+		for (auto node : s_Nodes)
+			node.function->clearFunctionLinks();
+
+		// go through all nodes and update all 
+		for (auto node : s_Nodes)
+			if (node.function != nullptr)
+				for (auto outputLink : node.Outputs)
+					for (auto& link : s_Links)
+						if (link.StartPinID == outputLink.ID)
+							for (auto nodeLinked : s_Nodes)
+								for (auto inputLink : nodeLinked.Inputs)
+									if (link.EndPinID == inputLink.ID)
+										if (inputLink.Type == plano::types::PinType::Flow) {
+											nodeLinked.function->addFunctionStarter(node.function);
+											node.function->addFunctionToStart(nodeLinked.function);
+										}
+										else if (inputLink.Type == plano::types::PinType::FlowReset) {
+											nodeLinked.function->addFunctionResetter(node.function);
+											node.function->addFunctionToReset(nodeLinked.function);
+										}
+	}
 };
 } // end of plano::types namespace.
 

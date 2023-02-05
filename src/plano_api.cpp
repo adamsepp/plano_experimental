@@ -51,7 +51,6 @@ types::ContextData* CreateContext(const types::ContextCallbacks& Config, const c
 
 void DestroyContext(ContextData* context)
 {
-	std::lock_guard<std::mutex> lock(*context->contextMtx); // lock context...
     delete context;
     context = nullptr;
 }
@@ -77,9 +76,7 @@ void LoadNodesAndLinksFromBuffer(const size_t in_size, const char* buffer)
     if(in_size < 1)
         return;
 
-	std::lock_guard<std::mutex> lock(*s_Session->contextMtx); // lock context...
-
-    // Extremely bad deserialization system
+	// Extremely bad deserialization system
     // PHASE ONE - READ FILE TO MEMORY --------------------------------------------
     std::string line; // tracks current line in file read loop
 
@@ -142,7 +139,7 @@ void LoadNodesAndLinksFromBuffer(const size_t in_size, const char* buffer)
         PropertiesCount = std::stol(line);
 
         // Iterate over propreties
-        for(int i = 0; i < PropertiesCount * 3; i++) {
+        for(int i = 0; i < PropertiesCount * 1; i++) {
             std::getline(inf,line);
             // note that we have to re-add the endline because getline consumes it.
             PropBuffer << line <<std::endl;
@@ -157,7 +154,11 @@ void LoadNodesAndLinksFromBuffer(const size_t in_size, const char* buffer)
         {
             Node* n = RestoreRegistryNode(NodeName,id,pin_ids);
             // Handle property through deserialization
-            Prop_Deserialize(n->Properties, Properties);
+            //Prop_Deserialize(n->Properties, Properties);
+			// this is all temporäry, but for now just store the description of the function
+			if (!Properties.empty())
+				Properties.pop_back(); // remove \n
+			if(n->function) n->function->setName(Properties);
 
         } // Done with node instantiation.
     } // Done with a node processing section.  Loop back if there's another node (more lines in getline)
@@ -184,8 +185,7 @@ void LoadNodesAndLinksFromBuffer(const size_t in_size, const char* buffer)
         // last is end pin id
         std::getline(inf,line);
         int end_pin_id = std::stol(line);
-
-
+		
         // construct a link
         plano::types::Link l = plano::types::Link(link_id,start_pin_id,end_pin_id);
         l.Color = GetIconColor(FindPin(start_pin_id)->Type);
@@ -193,6 +193,8 @@ void LoadNodesAndLinksFromBuffer(const size_t in_size, const char* buffer)
         // attach it to session
         s_Session->s_Links.push_back(std::move(l));
     }
+	// update all function links
+	s_Session->UpdateFunctionLinks();
 }
 
 #include <sstream>
@@ -240,13 +242,15 @@ char* SaveNodesAndLinksToBuffer(size_t* size)
         }
 
         // The next line is a number describing the count of properties lines.
-        unsigned long count;
-        std::string props = Prop_Serialize(s_Session->s_Nodes[i].Properties, count);
+        unsigned long count = 1;
+        // std::string props = Prop_Serialize(s_Session->s_Nodes[i].Properties, count);
+		// this is all temporäry, but for now just store the description of the function
+		std::string props = (s_Session->s_Nodes[i].function) ? s_Session->s_Nodes[i].function->getName() : "";
 
         out << count << std::endl;
 
         // Then the next lines are the actual property lines.
-        out << props;
+        out << props << std::endl;
     }
 
     // next write link count

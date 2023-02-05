@@ -22,6 +22,7 @@ struct ContextData;
 enum class PinType
 {
     Flow,
+	FlowReset,
     Bool,
     Int,
     Float,

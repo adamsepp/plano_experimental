@@ -44,9 +44,20 @@ void draw_blueprint_style(Pin* newLinkPin)
         builder.Begin(node.ID);
             if (!isSimple)
             {
-                builder.Header(node.Color);
+				builder.Header(node.Color);
                     ImGui::Spring(0);
-                    ImGui::TextUnformatted(node.Name.c_str());
+					ImFont* font = ImGui::GetFont();
+					float fontSizeOld = font->FontSize;
+					font->FontSize *= 0.8f; // draw a little bit bigger than all other text...
+					if (node.function != nullptr)
+						if (node.function->getName().size()) {
+							ImGui::Text("%s \"%s\"", node.Name.c_str(), node.function->getName().c_str());
+						}
+						else
+							ImGui::TextUnformatted(node.Name.c_str());
+					else
+						ImGui::TextUnformatted(node.Name.c_str());
+					font->FontSize = fontSizeOld;
                     ImGui::Spring(1);
                     ImGui::Dummy(ImVec2(0, 28));
                     if (hasOutputDelegates)
@@ -127,7 +138,7 @@ void draw_blueprint_style(Pin* newLinkPin)
             } else {
                 builder.Middle();
                 if(s_Session->NodeRegistry.count(node.Name) > 0){
-                    s_Session->NodeRegistry[node.Name].DrawAndEditProperties(node.function);
+                    s_Session->NodeRegistry[node.Name].DrawAndEditProperties(node.function, &node.Color);
                 }else{
                     im_draw_basic_widgets(node.Properties);
                 }

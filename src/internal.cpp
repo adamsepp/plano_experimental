@@ -162,14 +162,15 @@ void DrawPinIcon(const Pin& pin, bool connected, int alpha)
     color.Value.w = alpha / 255.0f;
     switch (pin.Type)
     {
-        case PinType::Flow:     iconType = IconType::Flow;   break;
-        case PinType::Bool:     iconType = IconType::Circle; break;
-        case PinType::Int:      iconType = IconType::Circle; break;
-        case PinType::Float:    iconType = IconType::Circle; break;
-        case PinType::String:   iconType = IconType::Circle; break;
-        case PinType::Object:   iconType = IconType::Circle; break;
-        case PinType::Function: iconType = IconType::Circle; break;
-        case PinType::Delegate: iconType = IconType::Square; break;
+        case PinType::Flow:      iconType = IconType::Flow;   break;
+		case PinType::FlowReset: iconType = IconType::Flow;   break;
+        case PinType::Bool:      iconType = IconType::Circle; break;
+        case PinType::Int:       iconType = IconType::Circle; break;
+        case PinType::Float:     iconType = IconType::Circle; break;
+        case PinType::String:    iconType = IconType::Circle; break;
+        case PinType::Object:    iconType = IconType::Circle; break;
+        case PinType::Function:  iconType = IconType::Circle; break;
+        case PinType::Delegate:  iconType = IconType::Square; break;
         default:
             return;
     }

@@ -72,10 +72,10 @@ void handle_link_dragging_interactions(statepack& s)
                 {
                     ed::RejectNewItem(ImColor(255, 0, 0), 2.0f);
                 }
-                else if (isNodeAncestor(endNode,startNode)){
-                    showLabel("x Connection would create a loop", ImColor(45, 32, 32, 180));
-                    ed::RejectNewItem(ImColor(255, 0, 0), 2.0f);
-                }
+                //else if (isNodeAncestor(endNode,startNode) && (endPin->Type != plano::types::PinType::FlowReset)){
+                //    showLabel("x Connection would create a loop", ImColor(45, 32, 32, 180));
+                //    ed::RejectNewItem(ImColor(255, 0, 0), 2.0f);
+                //}
                 else if (endPin->Kind == startPin->Kind)
                 {
                     showLabel("x Incompatible Pin Kind", ImColor(45, 32, 32, 180));
@@ -86,7 +86,8 @@ void handle_link_dragging_interactions(statepack& s)
                     showLabel("x Cannot connect to self", ImColor(45, 32, 32, 180));
                     ed::RejectNewItem(ImColor(255, 0, 0), 1.0f);
                 }
-                else if (endPin->Type != startPin->Type)
+                else if ((endPin->Type != startPin->Type)
+					 && ((endPin->Type != plano::types::PinType::FlowReset) && (startPin->Type != plano::types::PinType::Flow))) // special case which is allowed
                 {
                     showLabel("x Incompatible Pin Type", ImColor(45, 32, 32, 180));
                     ed::RejectNewItem(ImColor(255, 128, 128), 1.0f);
@@ -96,9 +97,9 @@ void handle_link_dragging_interactions(statepack& s)
                     showLabel("+ Create Link", ImColor(32, 45, 32, 180));
                     if (ed::AcceptNewItem(ImColor(128, 255, 128), 4.0f))
                     {
-
                         s_Session->s_Links.emplace_back(plano::types::Link(GetNextId(), startPinId, endPinId));
                         s_Session->s_Links.back().Color = GetIconColor(startPin->Type);
+						s_Session->UpdateFunctionLinks();
                     }
                 }
             } // Done with pin connection interaction handling
@@ -119,8 +120,8 @@ void handle_link_dragging_interactions(statepack& s)
 
             if (ed::AcceptNewItem())
             {
-                s.createNewNode  = true;
-                s.newNodeLinkPin = FindPin(pinId);
+                s.createNewNode    = true;
+                s.newNodeLinkPinID = pinId;
                 s.newLinkPin = nullptr;
                 ed::Suspend();
                 ImGui::OpenPopup("Create New Node");
@@ -216,6 +217,7 @@ void handle_delete_interactions()
                 }  // End test if the node search was sucessful
             } // End of Accept Delete Item block
         } // End of QueryDeletedNode loop
+		s_Session->UpdateFunctionLinks();
     } // End BeginDelete test
     ed::EndDelete();
 }

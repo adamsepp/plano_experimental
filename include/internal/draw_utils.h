@@ -69,8 +69,8 @@ struct statepack {
     ed::NodeId contextNodeId      = 0;
     ed::LinkId contextLinkId      = 0;
     ed::PinId  contextPinId       = 0;
+	ed::PinId  newNodeLinkPinID   = 0;
     bool createNewNode  = false;
-    plano::types::Pin* newNodeLinkPin = nullptr;
     plano::types::Pin* newLinkPin     = nullptr;
 };
 
